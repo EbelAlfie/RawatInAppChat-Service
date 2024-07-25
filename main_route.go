@@ -8,9 +8,9 @@ import (
 
 func main() {
 	server := gin.Default()
-	server.Group("/main")
+	publicRoute := server.Group("/main")
 	{
-		server.Group("user", router.UserRoute)
+		server.Group("/user", router.UserRoute(publicRoute))
 	}
 
 	server.Run("8080")

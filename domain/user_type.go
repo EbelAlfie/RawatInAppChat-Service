@@ -1,18 +1,5 @@
 package domain
 
-import (
-	"database/sql"
-)
-
-type UserUsecase struct {
-	repository UserRepository
-}
-
-type UserRepository struct {
-	db  *sql.DB
-	err error
-}
-
 type User struct {
 	userid   string `json:"id"`
 	username string `json:"user"`
