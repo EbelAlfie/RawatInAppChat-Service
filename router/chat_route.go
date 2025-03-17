@@ -4,6 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func orderHistory(c gin.RouterGroup) {
+func ChatRoute(c gin.RouterGroup) {
 
 }

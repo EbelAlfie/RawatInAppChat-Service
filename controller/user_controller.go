@@ -13,7 +13,7 @@ type UserController struct {
 
 func NewUserController(repo domain.UserRepository) domain.UserController {
 	return UserController{
-		repository = repo
+		repository: repo,
 	}
 }
 
