@@ -1,7 +1,7 @@
 package main
 
 import (
-	"chat_service/domain/model"
+	"chat_service/domain"
 	"chat_service/router"
 	"chat_service/utils"
 	"encoding/json"
@@ -10,6 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
+
+var sessions *domain.SessionSocket //[]domain.SessionSocket{}
 
 func main() {
 	server := gin.Default()
@@ -20,11 +22,13 @@ func main() {
 
 	upgrader := websocket.Upgrader{}
 	server.GET("/ws", func(ctx *gin.Context) {
-		fmt.Println("Called")
+		id := ctx.Request.URL.Query().Get("userId")
 		con, err := upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
 			return 
 		}
+
+		socket := getSocket(con, id)
 
 		for {
 			_, msgByte, err := con.ReadMessage()
@@ -35,22 +39,22 @@ func main() {
 			msg := string(msgByte)
 			fmt.Println(msg)
 
-			var chat model.RealtimeChatEvent
+			var chat domain.RealtimeChatEvent
 			err = json.Unmarshal(msgByte, &chat)
 			if err != nil {
 				fmt.Println("Unmarshal error " + err.Error())
 				continue
 			}
 
-			var newMsg model.RealtimeChatEvent
+			var newMsg domain.RealtimeChatEvent
 			if (chat.User.Id == "responden") {
-				newMsg = model.RealtimeChatEvent {
+				newMsg = domain.RealtimeChatEvent {
 					Id: utils.RandStringBytes(10),
 					Text: chat.Text,
 					User: chat.User,
 				}
 			} else {
-				newMsg = model.RealtimeChatEvent {
+				newMsg = domain.RealtimeChatEvent {
 					Id: chat.Id,
 					Text: chat.Text,
 					User: chat.User,
@@ -61,7 +65,8 @@ func main() {
 				fmt.Println("Encode error " + err.Error())
 				continue
 			}
-			err = con.WriteMessage(websocket.TextMessage, jsonDat)
+			
+			err = socket.Ws.WriteMessage(websocket.TextMessage, jsonDat)
 			fmt.Println("Send message ")
 			if err != nil {
 				fmt.Println("Error writing message " + err.Error())
@@ -70,4 +75,28 @@ func main() {
 	})
 
 	server.Run("127.0.0.1:8003")
+}
+
+func getSocket(con *websocket.Conn, sessionId string) *domain.SessionSocket {
+	var socket *domain.SessionSocket
+
+	if sessions == nil || sessions.Sid == "" {
+		socket = &domain.SessionSocket{
+					Sid: sessionId,
+					Ws: con,
+				}
+		sessions = socket
+	} else {
+		socket = sessions
+	}
+	// if i := slices.IndexFunc(sessions, func(s domain.SessionSocket) bool { return s.Sid == sessionId }); i != nil || i {
+	// 	socket = sessions[i]
+	// } else {
+	// 	socket = domain.SessionSocket{
+	// 		Sid: sessionId,
+	// 		Ws: *con,
+	// 	}
+	// 	sessions = append(sessions, socket)
+	// }
+	return socket
 }
