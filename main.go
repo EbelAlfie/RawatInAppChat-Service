@@ -74,7 +74,7 @@ func main() {
 		}
 	})
 
-	server.Run("127.0.0.1:8003")
+	server.Run("0.0.0.0:8003")
 }
 
 func getSocket(con *websocket.Conn, sessionId string) *domain.SessionSocket {
