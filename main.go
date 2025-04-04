@@ -3,7 +3,6 @@ package main
 import (
 	"chat_service/domain"
 	"chat_service/router"
-	"chat_service/utils"
 	"encoding/json"
 	"fmt"
 
@@ -47,18 +46,10 @@ func main() {
 			}
 
 			var newMsg domain.RealtimeChatEvent
-			if (chat.User.Id == "responden") {
-				newMsg = domain.RealtimeChatEvent {
-					Id: utils.RandStringBytes(10),
-					Text: chat.Text,
-					User: chat.User,
-				}
-			} else {
-				newMsg = domain.RealtimeChatEvent {
-					Id: chat.Id,
-					Text: chat.Text,
-					User: chat.User,
-				}
+			newMsg = domain.RealtimeChatEvent {
+				Id: chat.Id,
+				Text: chat.Text,
+				User: chat.User,
 			}
 			jsonDat, err := json.Marshal(newMsg)
 			if err != nil {
@@ -80,7 +71,7 @@ func main() {
 func getSocket(con *websocket.Conn, sessionId string) *domain.SessionSocket {
 	var socket *domain.SessionSocket
 
-	if sessions == nil || sessions.Sid == "" {
+	if sessionId != "" {
 		socket = &domain.SessionSocket{
 					Sid: sessionId,
 					Ws: con,
